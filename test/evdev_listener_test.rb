@@ -113,7 +113,7 @@ class EvdevListenerTest < Test::Unit::TestCase
     sleep 1
     send_key_event(@keyboard_fd, KEY_KP4)
     sleep 1
-    assert_equal 4, @listener.queue.size
-    assert_equal KEY_KP4, @listener.queue.pop
+    assert_equal 1, @listener.queue.size
+    assert_equal KEY_KP4, @listener.queue.pop.feature.code
   end
 end

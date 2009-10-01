@@ -13,10 +13,10 @@ class EvdevListener
         loop do
           begin
             event = device.read_event
+            filter_and_queue event
           rescue Errno::ENODEV
             break
           end
-          @queue << event.feature.code
         end
         device.close rescue Errno::ENODEV
       end
@@ -37,5 +37,13 @@ class EvdevListener
       end
     end
     devices
+  end
+
+  # Adds the event to the queue if the event is a key release. All other
+  # events are ignored.
+  def filter_and_queue(event)
+    if event.feature.type.name == 'KEY' and event.value == 0 
+      @queue << event
+    end
   end
 end

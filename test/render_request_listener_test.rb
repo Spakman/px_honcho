@@ -37,6 +37,13 @@ class RenderRequestListenerTest < Test::Unit::TestCase
     FileUtils.rm_f @socket_path
   end
 
+  # The sleep give listeners time to start listening and add requests to the queue
+  def write_request_to_socket(request)
+    sleep 0.1
+    @writing_socket << "<render #{request.length}>\n#{request}"
+    sleep 0.1
+  end
+
   def test_set_application_name
     focus_manager = HasFocusFocusManager.new
     listener = Honcho::RenderRequestListener.new @reading_socket, @queue, focus_manager
@@ -45,35 +52,31 @@ class RenderRequestListenerTest < Test::Unit::TestCase
 
   def test_queue_requests_for_active_application
     focus_manager = HasFocusFocusManager.new
-    listener = Honcho::RenderRequestListener.new @reading_socket, @queue, focus_manager
     Thread.new do
-      listener.listen_and_queue_requests
+      listener = Honcho::RenderRequestListener.new @reading_socket, @queue, focus_manager
+      begin
+        listener.listen_and_queue_requests
+      rescue IOError
+      end
     end
-    sleep 1
-    @writing_socket << "<render 14>\n"
-    @writing_socket << "12345678901234"
-    sleep 1
+    write_request_to_socket "12345678901234"
     assert_equal 1, @queue.size
-    @writing_socket << "<render 4>\n"
-    @writing_socket << "1234"
-    sleep 1
+    write_request_to_socket "1234"
     assert_equal 2, @queue.size
     assert_equal "12345678901234", @queue.pop
   end
 
   def test_ignore_request_for_inactive_application
     focus_manager = DoesNotHaveFocusFocusManager.new
-    listener = Honcho::RenderRequestListener.new @reading_socket, @queue, focus_manager
     Thread.new do
-      listener.listen_and_queue_requests
+      listener = Honcho::RenderRequestListener.new @reading_socket, @queue, focus_manager
+      begin
+        listener.listen_and_queue_requests
+      rescue IOError
+      end
     end
-    sleep 1
-    @writing_socket << "<render 14>\n"
-    @writing_socket << "12345678901234"
-    sleep 1
-    @writing_socket << "<render 14>\n"
-    @writing_socket << "12345678901234"
-    sleep 1
+    write_request_to_socket "12345678901234"
+    write_request_to_socket "12345678901234"
     assert_equal 0, @queue.size
   end
 end

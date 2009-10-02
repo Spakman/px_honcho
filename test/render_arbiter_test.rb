@@ -14,10 +14,13 @@ class RenderArbiterTest < Test::Unit::TestCase
   end
 
   def test_send_requests
-    queue = [ "DEF", "BC", "A" ]
+    queue = Queue.new
+    queue << "A"
+    queue << "BC"
+    queue << "DEF"
     arbiter = Honcho::RenderArbiter.new @fifo_path, queue
     arbiter.send_render_requests
-    sleep 1
+    sleep 0.2
     assert_equal "<render 1>\nA<render 2>\nBC<render 3>\nDEF", File.read(@fifo_path)
   end
 end

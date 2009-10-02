@@ -7,6 +7,8 @@ module Honcho
       @pipe = File.open fifo_path, "a+"
     end
 
+    # Loops in a thread, sending render requests to Rembrandt as soon as
+    # they are available.
     def send_render_requests
       Thread.new do
         loop do

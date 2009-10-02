@@ -3,7 +3,7 @@ require 'fileutils'
 require 'inline'
 require "#{File.dirname(__FILE__)}/../lib/evdev_listener"
 
-class EvdevListener
+class Honcho::EvdevListener
   attr_accessor :queue
 end
 
@@ -93,7 +93,7 @@ class EvdevListenerTest < Test::Unit::TestCase
   Thread.abort_on_exception = true
 
   def setup
-    @listener = EvdevListener.new
+    @listener = Honcho::EvdevListener.new
     @keyboard_fd = add_keyboard
   end
 

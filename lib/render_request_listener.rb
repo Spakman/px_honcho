@@ -14,7 +14,7 @@ module Honcho
     # consists of a message header and the markup to render. The message header
     # is of the form (terminated by a newline character):
     #
-    # <request X>
+    # <render X>
     #
     # where X is the number of bytes in the request that follows.
     def listen_and_queue_requests

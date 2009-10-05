@@ -1,7 +1,7 @@
 require "thread"
 
 module Honcho
-  class RenderRequestListener
+  class MessageListener
     def initialize(socket, queue, focus_manager)
       @socket = socket
       @focus_manager = focus_manager

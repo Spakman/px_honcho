@@ -2,7 +2,7 @@ require "test/unit"
 require "socket"
 require "fileutils"
 require "thread"
-require "#{File.dirname(__FILE__)}/../lib/render_request_listener"
+require "#{File.dirname(__FILE__)}/../lib/message_listener"
 
 class HasFocusFocusManager
   def has_focus?(application)
@@ -16,13 +16,13 @@ class DoesNotHaveFocusFocusManager
   end
 end
 
-class Honcho::RenderRequestListener
+class Honcho::MessageListener
   attr_reader :application
 end
 
-class RenderRequestListenerTest < Test::Unit::TestCase
+class MessageListenerTest < Test::Unit::TestCase
   def setup
-    @socket_path = "/tmp/render_request_listener_test.socket"
+    @socket_path = "/tmp/message_listener_test.socket"
     FileUtils.rm_f @socket_path
     listening_socket = UNIXServer.open @socket_path
     listening_socket.listen 1
@@ -46,14 +46,14 @@ class RenderRequestListenerTest < Test::Unit::TestCase
 
   def test_set_application_name
     focus_manager = HasFocusFocusManager.new
-    listener = Honcho::RenderRequestListener.new @reading_socket, @queue, focus_manager
-    assert_equal "render_request_listener_test", listener.application
+    listener = Honcho::MessageListener.new @reading_socket, @queue, focus_manager
+    assert_equal "message_listener_test", listener.application
   end
 
   def test_queue_requests_for_active_application
     focus_manager = HasFocusFocusManager.new
     Thread.new do
-      listener = Honcho::RenderRequestListener.new @reading_socket, @queue, focus_manager
+      listener = Honcho::MessageListener.new @reading_socket, @queue, focus_manager
       begin
         listener.listen_and_queue_requests
       rescue IOError
@@ -69,7 +69,7 @@ class RenderRequestListenerTest < Test::Unit::TestCase
   def test_ignore_request_for_inactive_application
     focus_manager = DoesNotHaveFocusFocusManager.new
     Thread.new do
-      listener = Honcho::RenderRequestListener.new @reading_socket, @queue, focus_manager
+      listener = Honcho::MessageListener.new @reading_socket, @queue, focus_manager
       begin
         listener.listen_and_queue_requests
       rescue IOError

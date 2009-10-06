@@ -2,24 +2,29 @@ module Honcho
   # A mutex and condition variable abstraction that is used by the main event
   # loop when waiting for a response.
   class ResponseWaiter
-    # The body of the response
-    attr_reader :response
-
     def initialize
       @mutex = Mutex.new
       @condition_variable = ConditionVariable.new
+      @waiting = false
     end
 
-    # Blocks, waiting for a response.
+    # Blocks until a response is received, which is then returned.
     def wait
       @mutex.synchronize do
-        @response = nil
+        @waiting = true
         @condition_variable.wait @mutex
+        @waiting = false
       end
+      return @response
     end
 
-    # Signals that a rseponse is available.
+    # Signals that a response is available.
     def signal(response)
+      # In some cases, this method can be called before the event loop has
+      # called ResponseWaiter#wait. It shouldn't take long though!
+      while not @waiting
+        sleep 0.001
+      end
       @mutex.synchronize do
         @response = response
         @condition_variable.signal

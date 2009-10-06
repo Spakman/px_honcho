@@ -95,7 +95,6 @@ class MessageListenerTest < Test::Unit::TestCase
       listener.listen_and_process_messages rescue IOError
     end
     write_keep_focus_response
-    @response_waiter.wait
-    assert_nil @response_waiter.response
+    assert_equal "<keepfocus 0>\n", @response_waiter.wait
   end
 end

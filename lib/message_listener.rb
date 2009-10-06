@@ -37,10 +37,11 @@ module Honcho
               @render_queue << body
             end
           else
-            @response_waiter.signal body
+            @response_waiter.signal "#{header}#{body}"
           end
         end
       end
     end
   end
 end
+

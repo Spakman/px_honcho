@@ -5,11 +5,11 @@ module Honcho
   # Listens for incoming messages from a single running application. Multiple 
   # listeners can be run in multiple threads.
   class MessageListener
-    def initialize(socket, render_queue, response_waiter, focus_manager)
+    def initialize(socket, render_arbiter, response_waiter, focus_manager)
       @socket = socket
       @focus_manager = focus_manager
       @application = File.basename(socket.path, ".socket")
-      @render_queue = render_queue
+      @render_queue = render_arbiter.queue
       @response_waiter = response_waiter
     end
 

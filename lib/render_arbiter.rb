@@ -2,6 +2,8 @@ require "thread"
 
 module Honcho
   class RenderArbiter
+    attr_reader :queue
+
     def initialize(fifo_path, render_queue)
       @render_queue = render_queue
       @pipe = File.open fifo_path, "a+"

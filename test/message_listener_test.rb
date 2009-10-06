@@ -22,6 +22,9 @@ class Honcho::MessageListener
 end
 
 class MessageListenerTest < Test::Unit::TestCase
+
+  FakeRenderArbiter = Struct.new :queue
+
   def setup
     @socket_path = "/tmp/message_listener_test.socket"
     FileUtils.rm_f @socket_path
@@ -29,7 +32,7 @@ class MessageListenerTest < Test::Unit::TestCase
     listening_socket.listen 1
     @writing_socket = UNIXSocket.open @socket_path
     @reading_socket = listening_socket.accept
-    @render_queue = Queue.new
+    @render_arbiter = FakeRenderArbiter.new Queue.new
     @response_waiter = Honcho::ResponseWaiter.new
   end
 
@@ -57,38 +60,38 @@ class MessageListenerTest < Test::Unit::TestCase
 
   def test_set_application_name
     focus_manager = HasFocusFocusManager.new
-    listener = Honcho::MessageListener.new @reading_socket, @render_queue, @response_waiter, focus_manager
+    listener = Honcho::MessageListener.new @reading_socket, @render_arbiter, @response_waiter, focus_manager
     assert_equal "message_listener_test", listener.application
   end
 
   def test_queue_render_requests_for_active_application
     focus_manager = HasFocusFocusManager.new
     Thread.new do
-      listener = Honcho::MessageListener.new @reading_socket, @render_queue, @response_waiter, focus_manager
+      listener = Honcho::MessageListener.new @reading_socket, @render_arbiter, @response_waiter, focus_manager
       listener.listen_and_process_messages rescue IOError
     end
     write_render_request_to_socket "12345678901234"
-    assert_equal 1, @render_queue.size
+    assert_equal 1, @render_arbiter.queue.size
     write_render_request_to_socket "1234"
-    assert_equal 2, @render_queue.size
-    assert_equal "12345678901234", @render_queue.pop
+    assert_equal 2, @render_arbiter.queue.size
+    assert_equal "12345678901234", @render_arbiter.queue.pop
   end
 
   def test_ignore_render_request_for_inactive_application
     focus_manager = DoesNotHaveFocusFocusManager.new
     Thread.new do
-      listener = Honcho::MessageListener.new @reading_socket, @render_queue, @response_waiter, focus_manager
+      listener = Honcho::MessageListener.new @reading_socket, @render_arbiter, @response_waiter, focus_manager
       listener.listen_and_process_messages rescue IOError
     end
     write_render_request_to_socket "12345678901234"
     write_render_request_to_socket "12345678901234"
-    assert_equal 0, @render_queue.size
+    assert_equal 0, @render_arbiter.queue.size
   end
 
   def test_resume_event_loop_on_keep_focus_response
     focus_manager = HasFocusFocusManager.new
     Thread.new do
-      listener = Honcho::MessageListener.new @reading_socket, @render_queue, @response_waiter, focus_manager
+      listener = Honcho::MessageListener.new @reading_socket, @render_arbiter, @response_waiter, focus_manager
       listener.listen_and_process_messages rescue IOError
     end
     write_keep_focus_response

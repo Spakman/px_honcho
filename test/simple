@@ -1,0 +1,6 @@
+#!/usr/bin/ruby
+require "socket"
+
+socket = UNIXSocket.open "/tmp/simple.socket"
+
+loop { sleep 10 }

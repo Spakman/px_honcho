@@ -7,9 +7,9 @@ require "#{File.dirname(__FILE__)}/../lib/message_listener"
 Thread.abort_on_exception = true
 
 class FocusManager
-  attr_reader :closed_called
-  def closed(application)
-    @closed_called = true
+  attr_reader :close_called
+  def close(application)
+    @close_called = true
   end
 end
 
@@ -124,7 +124,7 @@ class MessageListenerTest < Test::Unit::TestCase
     listener = Honcho::MessageListener.new @reading_socket, @render_arbiter, @response_waiter, focus_manager
     listener.listen_and_process_messages
     write_keep_focus_response
-    assert_equal "<keepfocus 0>\n", @response_waiter.wait
+    assert_kind_of Honcho::Message, @response_waiter.wait
   end
 
   def test_application_has_closed_socket_with_econnreset
@@ -135,7 +135,7 @@ class MessageListenerTest < Test::Unit::TestCase
     sleep 0.3
     assert_equal 1, socket.gets_count
     assert listener.socket.closed?
-    assert focus_manager.closed_called
+    assert focus_manager.close_called
   end
 
   def test_application_has_closed_socket_with_ebadf
@@ -146,7 +146,7 @@ class MessageListenerTest < Test::Unit::TestCase
     sleep 0.3
     assert_equal 1, socket.gets_count
     assert listener.socket.closed?
-    assert focus_manager.closed_called
+    assert focus_manager.close_called
   end
 
   def test_application_has_closed_socket_with_ioerror
@@ -157,6 +157,6 @@ class MessageListenerTest < Test::Unit::TestCase
     sleep 0.3
     assert_equal 1, socket.gets_count
     assert listener.socket.closed?
-    assert focus_manager.closed_called
+    assert focus_manager.close_called
   end
 end

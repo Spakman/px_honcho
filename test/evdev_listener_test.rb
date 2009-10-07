@@ -121,6 +121,7 @@ class EvdevListenerTest < Test::Unit::TestCase
 
   def test_input_event_to_message
     event = Honcho::InputEvent.new :top_left
-    assert_equal "<inputevent 9>\ntop_left\n", event.to_message
+    assert_kind_of Honcho::Message, event.to_message
+    assert_equal "<inputevent 8>\ntop_left", event.to_message.to_s
   end
 end

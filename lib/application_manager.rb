@@ -23,6 +23,10 @@ module Honcho
       delete_at index_of(name)
     end
 
+    def close_active
+      pop
+    end
+
     def running?(name)
       self[index_of(name)] rescue nil
     end
@@ -30,7 +34,7 @@ module Honcho
 
   # Handles event passing, application loading and focus.
   class ApplicationManager
-    APPLICATION_BASE = "#{File.dirname(__FILE__)}/../bin"
+    APPLICATION_BASE = "#{File.dirname(__FILE__)}/../apps"
     SOCKET_BASE = "/tmp"
 
     def initialize(render_arbiter, event_listener)
@@ -50,11 +54,22 @@ module Honcho
         event = @event_listener.queue.pop
         @applications.active[:socket] << event.to_message
         response = @response_waiter.wait
+
+        case response.type
+        when :passfocus
+          load_application response.body["application"]
+        when :closing
+          @applications.close_active
+          @applications.active[:socket] << Message.new(:havefocus)
+          @response_waiter.wait
+        when :keepfocus
+        else
+        end
       end
     end
 
     def has_focus?(application)
-      application == @applications.active[:name]
+      application == @applications.active[:name] rescue nil
     end
 
     # Sets up a socket, runs the application using fork/exec and then sets up a
@@ -97,7 +112,8 @@ module Honcho
 
     # The passed application has closed (or is closing) so we should clean up
     # and switch focus.
-    def closed(application)
+    def close(application)
+      @applications.active[:socket].close unless @applications.active[:socket].closed?
       @applications.closed application
     end
   end

@@ -1,5 +1,7 @@
 require "thread"
+require "yaml"
 require "#{File.dirname(__FILE__)}/response_waiter"
+require "#{File.dirname(__FILE__)}/message"
 
 Thread.abort_on_exception = true
 module Honcho
@@ -36,14 +38,15 @@ module Honcho
           rescue Errno::ECONNRESET, Errno::EBADF, IOError
             break
           end
-          if header =~ /^<(render|keepfocus) (\d{1,4})>\n$/
-            if $1 == "render"
-              body = @socket.read $2.to_i
+          if header =~ /^<(\w+) (\d+)>\n$/
+            body = @socket.read $2.to_i
+            message = Message.new $1, body
+            if message.type == :render
               if @focus_manager.has_focus? @application
-                @render_queue << body
+                @render_queue << message.body
               end
             else
-              @response_waiter.signal "#{header}#{body}"
+              @response_waiter.signal message
             end
           end
         end
@@ -54,7 +57,7 @@ module Honcho
     # This listener is shutting down and should tidy up before it leaves.
     def cleanup
       @socket.close unless @socket.closed?
-      @focus_manager.closed @application
+      @focus_manager.close @application
     end
   end
 end

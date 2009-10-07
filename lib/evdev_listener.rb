@@ -1,5 +1,6 @@
 require "evdev"
 require "thread"
+require "#{File.dirname(__FILE__)}/message"
 
 module Honcho
   class InputEvent
@@ -11,7 +12,7 @@ module Honcho
 
     # Returns the Honcho message for this event.
     def to_message
-      "<inputevent #{@button.length+1}>\n#{@button}\n"
+      Message.new :inputevent, @button
     end
   end
 

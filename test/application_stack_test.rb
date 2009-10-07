@@ -23,4 +23,10 @@ class ApplicationStackTest < Test::Unit::TestCase
     assert_equal 'two', @stack.active[:name]
     assert !@stack.running?('three')
   end
+
+  def test_close_active
+    @stack.close_active
+    assert_equal 'two', @stack.active[:name]
+    assert !@stack.running?('three')
+  end
 end

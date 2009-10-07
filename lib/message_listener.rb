@@ -1,6 +1,7 @@
 require "thread"
 require "#{File.dirname(__FILE__)}/response_waiter"
 
+Thread.abort_on_exception = true
 module Honcho
   # Listens for incoming messages from a single running application. Multiple 
   # listeners can be run in multiple threads.
@@ -29,7 +30,11 @@ module Honcho
     # where X is the number of bytes in the body that follows.
     def listen_and_process_messages
       loop do
-        header = @socket.gets
+        begin
+          header = @socket.gets
+        rescue Errno::ECONNRESET
+          break
+        end
         if header =~ /^<(render|keepfocus) (\d{1,4})>\n$/
           if $1 == "render"
             body = @socket.read $2.to_i
@@ -41,6 +46,13 @@ module Honcho
           end
         end
       end
+      cleanup
+    end
+
+    # This listener is shutting down and should tidy up before it leaves.
+    def cleanup
+      @socket.close
+      @focus_manager.closed @application
     end
   end
 end

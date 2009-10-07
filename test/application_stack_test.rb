@@ -1,10 +1,12 @@
 require "test/unit"
-require "#{File.dirname(__FILE__)}/../lib/application_manager"
+require "stringio"
+require "#{File.dirname(__FILE__)}/../lib/application_stack"
 
 class ApplicationStackTest < Test::Unit::TestCase
   def setup
     @stack = Honcho::ApplicationStack.new
-    @stack << { :name => 'one' } << { :name => 'two' } << { :name => 'three' }
+    @socket = StringIO.new
+    @stack << { :name => 'one', :socket => @socket } << { :name => 'two', :socket => @socket } << { :name => 'three', :socket => @socket }
   end
 
   def test_switch_applications
@@ -18,15 +20,21 @@ class ApplicationStackTest < Test::Unit::TestCase
     assert !@stack.running?('four')
   end
 
-  def test_closed
-    @stack.closed 'three'
+  def test_close
+    @stack.close 'three'
     assert_equal 'two', @stack.active[:name]
     assert !@stack.running?('three')
+    assert @socket.closed?
   end
 
   def test_close_active
     @stack.close_active
     assert_equal 'two', @stack.active[:name]
     assert !@stack.running?('three')
+    assert @socket.closed?
+  end
+
+  def test_get
+    assert_equal 'two', @stack.get("two")[:name]
   end
 end

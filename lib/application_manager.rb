@@ -2,36 +2,9 @@ require "socket"
 require "fileutils"
 require "#{File.dirname(__FILE__)}/response_waiter"
 require "#{File.dirname(__FILE__)}/message_listener"
+require "#{File.dirname(__FILE__)}/application_stack"
 
 module Honcho
-  # An array with some syntactic sugar. This is used to manage the running
-  # applications on the system.
-  class ApplicationStack < Array
-    def active
-      last
-    end
-
-    def index_of(name)
-      find_index { |app| app[:name] == name }
-    end
-    
-    def active=(name)
-      push delete_at index_of(name)
-    end
-
-    def closed(name)
-      delete_at index_of(name)
-    end
-
-    def close_active
-      pop
-    end
-
-    def running?(name)
-      self[index_of(name)] rescue nil
-    end
-  end
-
   # Handles event passing, application loading and focus.
   class ApplicationManager
     APPLICATION_BASE = "#{File.dirname(__FILE__)}/../apps"
@@ -105,16 +78,9 @@ module Honcho
 
     # Sends the TERM signal to all child applications.
     def shutdown
-      @applications.each do |application_properties|
-        Process.kill "TERM", application_properties[:pid]
+      @applications.each do |application|
+        @applications.close application[:name]
       end
-    end
-
-    # The passed application has closed (or is closing) so we should clean up
-    # and switch focus.
-    def close(application)
-      @applications.active[:socket].close unless @applications.active[:socket].closed?
-      @applications.closed application
     end
   end
 end

@@ -1,10 +1,12 @@
+require "socket"
+require "fileutils"
 require "#{File.dirname(__FILE__)}/response_waiter"
 require "#{File.dirname(__FILE__)}/message_listener"
 
 module Honcho
   # Handles event passing, application loading and focus.
   class ApplicationManager
-    APPLICATION_BASE = ""
+    APPLICATION_BASE = "#{File.dirname(__FILE__)}/../bin"
     SOCKET_BASE = "/tmp"
 
     def initialize(render_arbiter, event_listener)
@@ -24,10 +26,9 @@ module Honcho
     # Reads from the event queue and passes them onto the currently active application.
     def event_loop
       loop do
-        event = @evdev_listener.queue.pop
-        @current_socket << "#{event.feature.code}\n"
-        @response_waiter.wait
-        response = @response_waiter.response
+        event = @event_listener.queue.pop
+        current_application[:socket] << event.to_message
+        response = @response_waiter.wait
       end
     end
 
@@ -37,6 +38,7 @@ module Honcho
 
     def load_application(application)
       unless @applications[application]
+        FileUtils.rm_f "#{SOCKET_BASE}/#{application}.socket"
         socket = UNIXServer.open "#{SOCKET_BASE}/#{application}.socket"
         socket.listen 1
 
@@ -48,6 +50,7 @@ module Honcho
 
         message_listener = Honcho::MessageListener.new application_socket, @render_arbiter, @response_waiter, self
         Thread.new do
+          sleep 0.1
           message_listener.listen_and_process_messages
         end
         @applications[application] = { name: application, socket: application_socket, message_listener: message_listener, pid: pid }

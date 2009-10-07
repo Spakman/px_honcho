@@ -2,6 +2,19 @@ require "evdev"
 require "thread"
 
 module Honcho
+  class InputEvent
+    attr_reader :button
+
+    def initialize(button)
+      @button = button
+    end
+
+    # Returns the Honcho message for this event.
+    def to_message
+      "<inputevent #{@button.length+1}>\n#{@button}\n"
+    end
+  end
+
   class EvdevListener
     attr_reader :queue
 
@@ -44,9 +57,27 @@ module Honcho
 
     # Adds the event to the queue if the event is a key release. All other
     # events are ignored.
-    def filter_and_queue(event)
-      if event.feature.type.name == 'KEY' and event.value == 0 
-        @queue << event
+    def filter_and_queue(evdev_event)
+      if evdev_event.feature.type.name == 'KEY' and evdev_event.value == 0 
+        event = case evdev_event.feature.code
+        when 71
+          InputEvent.new :top_left
+        when 73
+          InputEvent.new :top_right
+        when 79
+          InputEvent.new :bottom_left
+        when 81
+          InputEvent.new :bottom_right
+        when 75
+          InputEvent.new :jog_wheel_left
+        when 76
+          InputEvent.new :jog_wheel_button
+        when 77
+          InputEvent.new :jog_wheel_right
+        else
+          nil
+        end
+        @queue << event unless event.nil?
       end
     end
   end

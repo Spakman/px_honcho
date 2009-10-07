@@ -114,6 +114,13 @@ class EvdevListenerTest < Test::Unit::TestCase
     send_key_event(@keyboard_fd, KEY_KP4)
     sleep 0.2
     assert_equal 1, @listener.queue.size
-    assert_equal KEY_KP4, @listener.queue.pop.feature.code
+    event = @listener.queue.pop
+    assert_equal Honcho::InputEvent, event.class
+    assert_equal :jog_wheel_left, event.button
+  end
+
+  def test_input_event_to_message
+    event = Honcho::InputEvent.new :top_left
+    assert_equal "<inputevent 9>\ntop_left\n", event.to_message
   end
 end

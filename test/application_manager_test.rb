@@ -2,6 +2,7 @@ require "test/unit"
 require "socket"
 require "fileutils"
 require "thread"
+require "#{File.dirname(__FILE__)}/../lib/evdev_listener"
 require "#{File.dirname(__FILE__)}/../lib/application_manager"
 
 Thread.abort_on_exception = true
@@ -14,6 +15,7 @@ end
 
 class ApplicationManagerTest < Test::Unit::TestCase
   FakeRenderArbiter = Struct.new :queue
+  FakeEventListener = Struct.new :queue
 
   def teardown
     FileUtils.rm_f "/tmp/simple.socket"
@@ -50,5 +52,23 @@ class ApplicationManagerTest < Test::Unit::TestCase
     assert_equal 2, @manager.applications.size
     assert_equal "simple", @manager.current_application[:name]
     assert @manager.has_focus?("simple")
+  end
+
+  def test_event_loop
+    queue = Queue.new
+    queue << Honcho::InputEvent.new(:top_left)
+    queue << Honcho::InputEvent.new(:jog_wheel_left)
+    @manager = Honcho::ApplicationManager.new FakeRenderArbiter.new(Queue.new), FakeEventListener.new(queue)
+    @manager.load_application "simple"
+    Thread.new do
+      @manager.event_loop
+    end
+    sleep 0.2
+    # Should still have one event on the queue, since the event loop should be waiting for a response
+    assert_equal 1, queue.size
+    # the simple program will send a response on SIGUSR1
+    Process.kill "USR1", @manager.current_application[:pid]
+    sleep 0.2
+    assert_empty queue
   end
 end

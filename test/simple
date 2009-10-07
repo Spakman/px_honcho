@@ -3,4 +3,10 @@ require "socket"
 
 socket = UNIXSocket.open "/tmp/simple.socket"
 
-loop { sleep 10 }
+Signal.trap("USR1") do
+  socket << "<keepfocus 0>\n"
+end
+
+loop do 
+  socket.gets
+end

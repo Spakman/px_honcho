@@ -4,6 +4,27 @@ require "#{File.dirname(__FILE__)}/response_waiter"
 require "#{File.dirname(__FILE__)}/message_listener"
 
 module Honcho
+  # An array with some syntactic sugar. This is used to manage the running
+  # applications on the system.
+  class ApplicationStack < Array
+    def active
+      last
+    end
+    
+    def active=(name)
+      index = find_index { |app| app[:name] == name }
+      push delete_at index
+    end
+
+    def close_active
+      pop
+    end
+
+    def running?(name)
+      find { |app| app[:name] == name }
+    end
+  end
+
   # Handles event passing, application loading and focus.
   class ApplicationManager
     APPLICATION_BASE = "#{File.dirname(__FILE__)}/../bin"
@@ -14,30 +35,26 @@ module Honcho
       @event_listener = event_listener
       @response_waiter = Honcho::ResponseWaiter.new
 
-      @applications = {}
-      @current_application = nil
+      @applications = ApplicationStack.new
       @pid = nil
     end
 
-    def current_application
-      @applications[@current_application]
-    end
-
-    # Reads from the event queue and passes them onto the currently active application.
+    # Reads from the event queue and passes them onto the currently active
+    # application.
     def event_loop
       loop do
         event = @event_listener.queue.pop
-        current_application[:socket] << event.to_message
+        @applications.active[:socket] << event.to_message
         response = @response_waiter.wait
       end
     end
 
     def has_focus?(application)
-      application == current_application[:name]
+      application == @applications.active[:name]
     end
 
     def load_application(application)
-      unless @applications[application]
+      unless @applications.running? application
         FileUtils.rm_f "#{SOCKET_BASE}/#{application}.socket"
         socket = UNIXServer.open "#{SOCKET_BASE}/#{application}.socket"
         socket.listen 1
@@ -53,16 +70,21 @@ module Honcho
           sleep 0.1
           message_listener.listen_and_process_messages
         end
-        @applications[application] = { name: application, socket: application_socket, message_listener: message_listener, pid: pid }
+        @applications << { name: application, socket: application_socket, message_listener: message_listener, pid: pid }
       end
-      @current_application = application
+      @applications.active = application
     end
 
     # Sends the TERM signal to all child applications.
     def shutdown
-      @applications.each_pair do |name, values|
-        Process.kill "TERM", values[:pid]
+      @applications.each do |application_properties|
+        Process.kill "TERM", application_properties[:pid]
       end
+    end
+
+    # The passed application has closed (or is closing) so we should clean up
+    # and switch focus.
+    def closed(application)
     end
   end
 end

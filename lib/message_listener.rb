@@ -29,29 +29,31 @@ module Honcho
     #
     # where X is the number of bytes in the body that follows.
     def listen_and_process_messages
-      loop do
-        begin
-          header = @socket.gets
-        rescue Errno::ECONNRESET
-          break
-        end
-        if header =~ /^<(render|keepfocus) (\d{1,4})>\n$/
-          if $1 == "render"
-            body = @socket.read $2.to_i
-            if @focus_manager.has_focus? @application
-              @render_queue << body
+      Thread.new do
+        loop do
+          begin
+            header = @socket.gets
+          rescue Errno::ECONNRESET, Errno::EBADF, IOError
+            break
+          end
+          if header =~ /^<(render|keepfocus) (\d{1,4})>\n$/
+            if $1 == "render"
+              body = @socket.read $2.to_i
+              if @focus_manager.has_focus? @application
+                @render_queue << body
+              end
+            else
+              @response_waiter.signal "#{header}#{body}"
             end
-          else
-            @response_waiter.signal "#{header}#{body}"
           end
         end
+        cleanup
       end
-      cleanup
     end
 
     # This listener is shutting down and should tidy up before it leaves.
     def cleanup
-      @socket.close
+      @socket.close unless @socket.closed?
       @focus_manager.closed @application
     end
   end

@@ -10,18 +10,21 @@ module Honcho
     def active
       last
     end
+
+    def index_of(name)
+      find_index { |app| app[:name] == name }
+    end
     
     def active=(name)
-      index = find_index { |app| app[:name] == name }
-      push delete_at index
+      push delete_at index_of(name)
     end
 
-    def close_active
-      pop
+    def closed(name)
+      delete_at index_of(name)
     end
 
     def running?(name)
-      find { |app| app[:name] == name }
+      self[index_of(name)] rescue nil
     end
   end
 
@@ -53,26 +56,35 @@ module Honcho
       application == @applications.active[:name]
     end
 
+    # Sets up a socket, runs the application using fork/exec and then sets up a
+    # message listener.
     def load_application(application)
       unless @applications.running? application
-        FileUtils.rm_f "#{SOCKET_BASE}/#{application}.socket"
-        socket = UNIXServer.open "#{SOCKET_BASE}/#{application}.socket"
-        socket.listen 1
+        listening_socket = listening_socket_for(application)
 
-        pid = fork do
-          exec File.expand_path "#{APPLICATION_BASE}/#{application}"
-        end
+        pid = fork { exec executable_path_for(application) }
 
-        application_socket = socket.accept
+        socket = listening_socket.accept
 
-        message_listener = Honcho::MessageListener.new application_socket, @render_arbiter, @response_waiter, self
-        Thread.new do
-          sleep 0.1
-          message_listener.listen_and_process_messages
-        end
-        @applications << { name: application, socket: application_socket, message_listener: message_listener, pid: pid }
+        message_listener = Honcho::MessageListener.new socket, @render_arbiter, @response_waiter, self
+        message_listener.listen_and_process_messages
+
+        @applications << { name: application, socket: socket, message_listener: message_listener, pid: pid }
       end
       @applications.active = application
+    end
+    
+    # Sets up a socket and starts listening for a connection from the application.
+    def listening_socket_for(application)
+      FileUtils.rm_f "#{SOCKET_BASE}/#{application}.socket"
+      socket = UNIXServer.open "#{SOCKET_BASE}/#{application}.socket"
+      socket.listen 1
+      socket
+    end 
+
+    # Returns the full path to the executable.
+    def executable_path_for(application)
+      File.expand_path "#{APPLICATION_BASE}/#{application}"
     end
 
     # Sends the TERM signal to all child applications.
@@ -85,6 +97,7 @@ module Honcho
     # The passed application has closed (or is closing) so we should clean up
     # and switch focus.
     def closed(application)
+      @applications.closed application
     end
   end
 end

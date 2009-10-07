@@ -6,18 +6,21 @@ require "#{File.dirname(__FILE__)}/../lib/message_listener"
 
 Thread.abort_on_exception = true
 
-class HasFocusFocusManager
+class FocusManager
   attr_reader :closed_called
   def closed(application)
     @closed_called = true
   end
+end
 
+
+class HasFocusFocusManager < FocusManager
   def has_focus?(application)
     true
   end
 end
 
-class DoesNotHaveFocusFocusManager
+class DoesNotHaveFocusFocusManager < FocusManager
   def has_focus?(application)
     false
   end
@@ -98,10 +101,8 @@ class MessageListenerTest < Test::Unit::TestCase
 
   def test_queue_render_requests_for_active_application
     focus_manager = HasFocusFocusManager.new
-    Thread.new do
-      listener = Honcho::MessageListener.new @reading_socket, @render_arbiter, @response_waiter, focus_manager
-      listener.listen_and_process_messages rescue IOError
-    end
+    listener = Honcho::MessageListener.new @reading_socket, @render_arbiter, @response_waiter, focus_manager
+    listener.listen_and_process_messages
     write_render_request_to_socket "12345678901234"
     assert_equal 1, @render_arbiter.queue.size
     write_render_request_to_socket "1234"
@@ -112,9 +113,7 @@ class MessageListenerTest < Test::Unit::TestCase
   def test_ignore_render_request_for_inactive_application
     focus_manager = DoesNotHaveFocusFocusManager.new
     listener = Honcho::MessageListener.new @reading_socket, @render_arbiter, @response_waiter, focus_manager
-    Thread.new do
-      listener.listen_and_process_messages rescue IOError
-    end
+    listener.listen_and_process_messages
     write_render_request_to_socket "12345678901234"
     write_render_request_to_socket "12345678901234"
     assert_equal 0, @render_arbiter.queue.size
@@ -122,22 +121,40 @@ class MessageListenerTest < Test::Unit::TestCase
 
   def test_resume_event_loop_on_keep_focus_response
     focus_manager = HasFocusFocusManager.new
-    Thread.new do
-      listener = Honcho::MessageListener.new @reading_socket, @render_arbiter, @response_waiter, focus_manager
-      listener.listen_and_process_messages rescue IOError
-    end
+    listener = Honcho::MessageListener.new @reading_socket, @render_arbiter, @response_waiter, focus_manager
+    listener.listen_and_process_messages
     write_keep_focus_response
     assert_equal "<keepfocus 0>\n", @response_waiter.wait
   end
 
-  def test_application_has_closed_socket
+  def test_application_has_closed_socket_with_econnreset
     focus_manager = HasFocusFocusManager.new
     socket = ExceptionSocket.new Errno::ECONNRESET
     listener = Honcho::MessageListener.new socket, @render_arbiter, @response_waiter, focus_manager
-    Thread.new do
-      listener.listen_and_process_messages rescue IOError
-    end
-    sleep 0.1
+    listener.listen_and_process_messages
+    sleep 0.3
+    assert_equal 1, socket.gets_count
+    assert listener.socket.closed?
+    assert focus_manager.closed_called
+  end
+
+  def test_application_has_closed_socket_with_ebadf
+    focus_manager = HasFocusFocusManager.new
+    socket = ExceptionSocket.new Errno::EBADF
+    listener = Honcho::MessageListener.new socket, @render_arbiter, @response_waiter, focus_manager
+    listener.listen_and_process_messages
+    sleep 0.3
+    assert_equal 1, socket.gets_count
+    assert listener.socket.closed?
+    assert focus_manager.closed_called
+  end
+
+  def test_application_has_closed_socket_with_ioerror
+    focus_manager = HasFocusFocusManager.new
+    socket = ExceptionSocket.new IOError
+    listener = Honcho::MessageListener.new socket, @render_arbiter, @response_waiter, focus_manager
+    listener.listen_and_process_messages
+    sleep 0.3
     assert_equal 1, socket.gets_count
     assert listener.socket.closed?
     assert focus_manager.closed_called

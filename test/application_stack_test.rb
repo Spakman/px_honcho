@@ -14,6 +14,13 @@ class ApplicationStackTest < Test::Unit::TestCase
   end
 
   def test_running
-    assert @stack.running? 'one'
+    assert @stack.running?('one')
+    assert !@stack.running?('four')
+  end
+
+  def test_closed
+    @stack.closed 'three'
+    assert_equal 'two', @stack.active[:name]
+    assert !@stack.running?('three')
   end
 end

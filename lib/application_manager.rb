@@ -40,6 +40,7 @@ module Honcho
 
       @applications = ApplicationStack.new
       @pid = nil
+      at_exit { shutdown }
     end
 
     # Reads from the event queue and passes them onto the currently active

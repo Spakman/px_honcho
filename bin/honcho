@@ -1,0 +1,34 @@
+#!/usr/bin/ruby19
+require 'optparse'
+require "#{File.dirname(__FILE__)}/../lib/application_manager"
+require "#{File.dirname(__FILE__)}/../lib/render_arbiter"
+require "#{File.dirname(__FILE__)}/../lib/evdev_listener"
+
+Thread.abort_on_exception = true
+
+options = { pipe: "/tmp/rembrandt.fifo" }
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: rembrandt [options]"
+
+  opts.on("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+
+  opts.on("-p", "--pipe [FILEPATH]", "Send render requests to this pipe") do |pipe|
+    options[:pipe] = pipe
+  end
+end.parse!
+
+render_arbiter = Honcho::RenderArbiter.new options[:pipe], Queue.new
+render_arbiter.send_render_requests
+
+evdev_listener = Honcho::EvdevListener.new
+evdev_listener.listen_and_process_events evdev_listener.keyboards
+
+application_manager = Honcho::ApplicationManager.new render_arbiter, evdev_listener
+
+application_manager.load_application "main_menu"
+
+application_manager.event_loop

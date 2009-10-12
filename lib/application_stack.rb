@@ -1,3 +1,7 @@
+# Copyright (C) 2009 Mark Somerville <mark@scottishclimbs.com>
+# Released under the General Public License (GPL) version 3.
+# See COPYING
+
 module Honcho
   # An array with some syntactic sugar. This is used to manage the running
   # applications on the system.

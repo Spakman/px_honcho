@@ -27,5 +27,7 @@ module Honcho
       end
       "<#{type} #{body.to_s.length}>\n#{body}"
     end
+
+    alias_method :to_str, :to_s
   end
 end

@@ -3,7 +3,7 @@ require "socket"
 
 @socket = UNIXSocket.open "/tmp/main_menu.socket"
 
-@items = %w( Music Radio Clock Podcasts Settings )
+@items = %w( Music Clock )
 @selected = 0
 
 def render_list
@@ -26,6 +26,12 @@ end
 def respond_pass_focus_to_clock
   @socket << "<passfocus 19>\n"
   @socket << "application: clock\n" 
+  @socket.flush
+end
+
+def respond_pass_focus_to_messier
+  @socket << "<passfocus 21>\n"
+  @socket << "application: messier\n" 
   @socket.flush
 end
 
@@ -64,6 +70,8 @@ loop do
       when "jog_wheel_button"
         if @items[@selected] == "Clock"
           respond_pass_focus_to_clock
+        elsif @items[@selected] == "Music"
+          respond_pass_focus_to_messier
         else
           respond_keep_focus
         end

@@ -26,18 +26,22 @@ module Honcho
       loop do
         event = @event_listener.queue.pop
         @applications.active[:socket] << event.to_message
-        response = @response_waiter.wait
+        act_on_response @response_waiter.wait
+      end
+    end
 
-        case response.type
-        when :passfocus
-          load_application response.body["application"]
-        when :closing
-          @applications.close_active
-          @applications.active[:socket] << Message.new(:havefocus)
-          @response_waiter.wait
-        when :keepfocus
-        else
-        end
+    def act_on_response(response)
+      case response.type
+      when :passfocus
+        load_application response.body["application"]
+        @applications.active[:socket] << Message.new(:havefocus)
+        act_on_response @response_waiter.wait
+      when :closing
+        @applications.close_active
+        @applications.active[:socket] << Message.new(:havefocus)
+        @response_waiter.wait
+      when :keepfocus
+      else
       end
     end
 

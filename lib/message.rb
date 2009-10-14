@@ -1,3 +1,7 @@
+# Copyright (C) 2009 Mark Somerville <mark@scottishclimbs.com>
+# Released under the General Public License (GPL) version 3.
+# See COPYING
+
 module Honcho
   # Defines a message that Honcho sends or receives from the applications.
   class Message

@@ -4,7 +4,7 @@
 
 require "evdev"
 require "thread"
-require "#{File.dirname(__FILE__)}/message"
+require_relative "message"
 
 module Honcho
   class InputEvent

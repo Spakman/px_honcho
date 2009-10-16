@@ -1,7 +1,7 @@
 require "test/unit"
 require "socket"
 require "fileutils"
-require "#{File.dirname(__FILE__)}/../lib/render_arbiter"
+require_relative "../lib/render_arbiter"
 
 class RenderArbiterTest < Test::Unit::TestCase
 

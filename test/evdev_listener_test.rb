@@ -1,7 +1,7 @@
 require 'test/unit'
 require 'fileutils'
 require 'inline'
-require "#{File.dirname(__FILE__)}/../lib/evdev_listener"
+require_relative "../lib/evdev_listener"
 
 class Honcho::EvdevListener
   attr_accessor :queue

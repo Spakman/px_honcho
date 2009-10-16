@@ -1,6 +1,6 @@
 require "test/unit"
 require "stringio"
-require "#{File.dirname(__FILE__)}/../lib/application_stack"
+require_relative "../lib/application_stack"
 
 class ApplicationStackTest < Test::Unit::TestCase
   def setup

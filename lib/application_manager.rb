@@ -4,9 +4,9 @@
 
 require "socket"
 require "fileutils"
-require "#{File.dirname(__FILE__)}/response_waiter"
-require "#{File.dirname(__FILE__)}/message_listener"
-require "#{File.dirname(__FILE__)}/application_stack"
+require_relative "response_waiter"
+require_relative "message_listener"
+require_relative "application_stack"
 
 module Honcho
   # Handles event passing, application loading and focus.

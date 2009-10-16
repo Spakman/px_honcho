@@ -2,8 +2,8 @@ require "test/unit"
 require "socket"
 require "fileutils"
 require "thread"
-require "#{File.dirname(__FILE__)}/../lib/evdev_listener"
-require "#{File.dirname(__FILE__)}/../lib/application_manager"
+require_relative "../lib/evdev_listener"
+require_relative "../lib/application_manager"
 
 Thread.abort_on_exception = true
 

@@ -2,7 +2,7 @@ require "test/unit"
 require "socket"
 require "fileutils"
 require "thread"
-require "#{File.dirname(__FILE__)}/../lib/message_listener"
+require_relative "../lib/message_listener"
 
 Thread.abort_on_exception = true
 

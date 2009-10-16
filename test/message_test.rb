@@ -1,5 +1,5 @@
 require "test/unit"
-require "#{File.dirname(__FILE__)}/../lib/message"
+require_relative "../lib/message"
 
 class MessageTest < Test::Unit::TestCase
   def test_to_s

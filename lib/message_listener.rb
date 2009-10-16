@@ -4,8 +4,8 @@
 
 require "thread"
 require "yaml"
-require "#{File.dirname(__FILE__)}/response_waiter"
-require "#{File.dirname(__FILE__)}/message"
+require_relative "response_waiter"
+require_relative "message"
 
 Thread.abort_on_exception = true
 module Honcho

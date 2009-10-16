@@ -10,7 +10,7 @@ require "#{File.dirname(__FILE__)}/../lib/evdev_listener"
 
 Thread.abort_on_exception = true
 
-options = { pipe: "/tmp/rembrandt.fifo" }
+options = { pipe: "/tmp/rembrandt.fifo", daemonize: false }
 
 OptionParser.new do |opts|
   opts.banner = "Usage: rembrandt [options]"
@@ -23,7 +23,14 @@ OptionParser.new do |opts|
   opts.on("-p", "--pipe [FILEPATH]", "Send render requests to this pipe") do |pipe|
     options[:pipe] = pipe
   end
+
+  # The American spelling of this word feels better than the British one!
+  opts.on("-d", "--daemonize", "Runs Rembrandt in the background") do |daemonize|
+    options[:daemonize] = daemonize
+  end
 end.parse!
+
+Process.daemon if options[:daemonize]
 
 render_arbiter = Honcho::RenderArbiter.new options[:pipe], Queue.new
 render_arbiter.send_render_requests

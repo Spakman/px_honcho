@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 require "socket"
 
-socket = UNIXSocket.open "/tmp/respond_keep_focus.socket"
+socket = UNIXSocket.open "/tmp/fake_clock.socket"
 
 loop do 
   socket.gets

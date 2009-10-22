@@ -37,8 +37,9 @@ module Honcho
     def act_on_response(response)
       case response.type
       when :passfocus
-        load_application response.body["application"]
-        @applications.active[:socket] << Message.new(:havefocus)
+        application = response.body.delete "application"
+        load_application application
+        @applications.active[:socket] << Message.new(:havefocus, response.body)
         act_on_response @response_waiter.wait
       when :closing
         @applications.close_active

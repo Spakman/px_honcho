@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/scratch/bin/ruby
 require "socket"
 
 socket = UNIXSocket.open "/tmp/fake_messier.socket"

@@ -1,0 +1,19 @@
+== Honcho
+
+Honcho (as in Head) is the application manager application for Project-X. It handles events from the kernel and passes them onto the currently active application via its own message protocol. Honcho is also responsible for launching applications and arbiting access to Rembrandt.
+
+== Filesystem layout
+
+Honcho and associated applications need to know about each other and assume a certain directory structure. Since these libraries and programs only make sense in the context of Project-X, we keep them in their own directory. This can live anywhere you like, but *MUST* be referenced by the PROJECT_X_BASE environment variable.
+
+Honcho and friends expect this sort of structure:
+
+* $PROJECT_X_BASE/lib/honcho -> /path/to/honcho/libdir 
+* $PROJECT_X_BASE/lib/messier -> /path/to/messier/libdir 
+* $PROJECT_X_BASE/apps/messier -> /path/to/messier/libdir 
+
+$PROJECT_X_BASE/lib is added to the Ruby <code>$LOAD_PATH</code> at runtime.
+
+== Requirements
+
+Since Honcho <code>exec</code>s applications under $PROJECT_X_BASE/apps/, you need to make sure the hashbang of and Ruby (and other) programs is correct. The Ruby programs have this set to /scratch/bin/ruby which must point to a Ruby 1.9 installation.

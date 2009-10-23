@@ -11,7 +11,7 @@ require_relative "application_stack"
 module Honcho
   # Handles event passing, application loading and focus.
   class ApplicationManager
-    APPLICATION_BASE = "#{File.dirname(__FILE__)}/../apps"
+    APPLICATION_BASE = "#{ENV['PROJECT_X_BASE']}/apps"
     SOCKET_BASE = "/tmp"
 
     def initialize(render_arbiter, event_listener)
@@ -59,7 +59,10 @@ module Honcho
       unless @applications.running? application
         listening_socket = listening_socket_for(application)
 
-        pid = fork { exec executable_path_for(application) }
+        pid = fork do
+          exec executable_path_for(application)
+        end
+
 
         socket = listening_socket.accept
 

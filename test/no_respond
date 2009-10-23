@@ -1,12 +1,10 @@
 #!/usr/bin/ruby
 require "socket"
 
-socket = UNIXSocket.open "/tmp/simple.socket"
+socket = UNIXSocket.open "/tmp/no_respond.socket"
 
 Signal.trap("USR1") do
   socket << "<keepfocus 0>\n"
 end
 
-loop do 
-  socket.gets
-end
+loop { sleep 10 }

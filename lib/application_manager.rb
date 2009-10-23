@@ -29,22 +29,26 @@ module Honcho
     def event_loop
       loop do
         event = @event_listener.queue.pop
-        @applications.active[:socket] << event.to_message
-        act_on_response @response_waiter.wait
+        send_message event.to_message
       end
     end
 
+    # Sends the passed message to the active application.
+    def send_message(message)
+      @applications.active[:socket] << message
+      act_on_response @response_waiter.wait
+    end
+
+    # Handles the message response from the active application.
     def act_on_response(response)
       case response.type
       when :passfocus
         application = response.body.delete "application"
         load_application application
-        @applications.active[:socket] << Message.new(:havefocus, response.body)
-        act_on_response @response_waiter.wait
+        send_message Message.new(:havefocus, response.body)
       when :closing
         @applications.close_active
-        @applications.active[:socket] << Message.new(:havefocus)
-        @response_waiter.wait
+        send_message Message.new(:havefocus)
       when :keepfocus
       else
       end

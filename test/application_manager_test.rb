@@ -106,4 +106,17 @@ class ApplicationManagerTest < Test::Unit::TestCase
     assert_equal "method: play_ids\nparams: 1,2,3", File.read("fake_mozart_params.test")
     FileUtils.rm "fake_mozart_params.test"
   end
+
+  def test_act_on_passfocus_response_without_any_body
+    queue = Queue.new
+    @manager = Honcho::ApplicationManager.new FakeRenderArbiter.new(Queue.new), FakeEventListener.new(queue)
+    @manager.load_application "fake_clock"
+    @manager.load_application "fake_messier"
+    @manager.load_application "fake_mozart"
+    @manager.act_on_response Honcho::Message.new(:passfocus)
+    assert_equal 3, @manager.applications.size
+    assert_equal "fake_messier", @manager.applications.active[:name]
+    assert @manager.has_focus?("fake_messier")
+    assert_equal "fake_mozart", @manager.applications.first[:name]
+  end
 end

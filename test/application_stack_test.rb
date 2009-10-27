@@ -37,4 +37,10 @@ class ApplicationStackTest < Test::Unit::TestCase
   def test_get
     assert_equal 'two', @stack.get("two")[:name]
   end
+
+  def test_move_active_to_bottom
+    assert_equal 'two', @stack.move_active_to_bottom[:name]
+    assert_equal 'three', @stack.first[:name]
+    assert_equal 'two', @stack.active[:name]
+  end
 end

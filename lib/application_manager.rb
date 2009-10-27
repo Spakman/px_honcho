@@ -43,8 +43,12 @@ module Honcho
     def act_on_response(response)
       case response.type
       when :passfocus
-        application = response.body.delete "application"
-        load_application application
+        if response.body
+          application = response.body.delete "application"
+          load_application application
+        else
+          @applications.move_active_to_bottom
+        end
         send_message Message.new(:havefocus, response.body)
       when :closing
         @applications.close_active

@@ -38,5 +38,10 @@ module Honcho
     def running?(name)
       get(name)
     end
+
+    def move_active_to_bottom
+      unshift pop
+      active
+    end
   end
 end

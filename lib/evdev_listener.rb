@@ -60,27 +60,37 @@ module Honcho
       devices
     end
 
-    # Adds the event to the queue if the event is a key release. All other
-    # events are ignored.
+    # Adds the event to the queue if the event is a key release. It will also
+    # add events to the queue if they come from holding down KEY_KP4 or KEY_KP6
+    # (jog wheel left and jog wheel right). This is to give a ncier experience
+    # when using a keyboard for navigation.
+    #
+    # All other events are ignored.
     def filter_and_queue(evdev_event)
-      if evdev_event.feature.type.name == 'KEY' and evdev_event.value == 0 
-        event = case evdev_event.feature.code
-        when 71
-          InputEvent.new :top_left
-        when 73
-          InputEvent.new :top_right
-        when 79
-          InputEvent.new :bottom_left
-        when 81
-          InputEvent.new :bottom_right
-        when 75
-          InputEvent.new :jog_wheel_left
-        when 76
-          InputEvent.new :jog_wheel_button
-        when 77
-          InputEvent.new :jog_wheel_right
-        else
-          nil
+      if evdev_event.feature.type.name == 'KEY'
+        if evdev_event.value == 0 or evdev_event.feature.code == 75 or evdev_event.feature.code == 77
+          event = case evdev_event.feature.code
+          when 71
+            InputEvent.new :top_left
+          when 73
+            InputEvent.new :top_right
+          when 79
+            InputEvent.new :bottom_left
+          when 81
+            InputEvent.new :bottom_right
+          when 75
+            if evdev_event.value != 1
+              InputEvent.new :jog_wheel_left
+            end
+          when 76
+            InputEvent.new :jog_wheel_button
+          when 77
+            if evdev_event.value != 1
+              InputEvent.new :jog_wheel_right
+            end
+          else
+            nil
+          end
         end
         @queue << event unless event.nil?
       end

@@ -10,6 +10,7 @@ end
 class EvdevListenerTest < Test::Unit::TestCase
 
   KEY_KP4 = 75
+  KEY_KP5 = 76
 
   inline do |builder|
     builder.include '"stdio.h"'
@@ -84,6 +85,58 @@ class EvdevListenerTest < Test::Unit::TestCase
     builder.include '"unistd.h"'
     builder.include '"linux/uinput.h"'
     builder.c '
+      void send_held_down_key_events(int uinput_fd, int keycode) {
+        struct input_event key_event, syn_event;
+
+        gettimeofday(&key_event.time, NULL);
+        key_event.type = EV_KEY;
+        key_event.code = keycode;
+        key_event.value = 1;
+        write(uinput_fd, &key_event, sizeof(key_event));
+
+        gettimeofday(&syn_event.time, NULL);
+        syn_event.type = EV_SYN;
+        syn_event.code = SYN_REPORT;
+        syn_event.value = 0;
+        write(uinput_fd, &syn_event, sizeof(syn_event));
+
+        gettimeofday(&key_event.time, NULL);
+        key_event.type = EV_KEY;
+        key_event.code = keycode;
+        key_event.value = 2;
+        write(uinput_fd, &key_event, sizeof(key_event));
+
+        gettimeofday(&syn_event.time, NULL);
+        syn_event.type = EV_SYN;
+        syn_event.code = SYN_REPORT;
+        syn_event.value = 0;
+        write(uinput_fd, &syn_event, sizeof(syn_event));
+
+        gettimeofday(&key_event.time, NULL);
+        key_event.type = EV_KEY;
+        key_event.code = keycode;
+        key_event.value = 2;
+        write(uinput_fd, &key_event, sizeof(key_event));
+
+        gettimeofday(&syn_event.time, NULL);
+        syn_event.type = EV_SYN;
+        syn_event.code = SYN_REPORT;
+        syn_event.value = 0;
+        write(uinput_fd, &syn_event, sizeof(syn_event));
+
+        gettimeofday(&key_event.time, NULL);
+        key_event.value = 0;
+        write(uinput_fd, &key_event, sizeof(key_event));
+
+        gettimeofday(&syn_event.time, NULL);
+        write(uinput_fd, &syn_event, sizeof(syn_event));
+      }'
+  end
+
+  inline do |builder|
+    builder.include '"unistd.h"'
+    builder.include '"linux/uinput.h"'
+    builder.c '
       void destroy_keyboard(int uinput_fd) {
         ioctl(uinput_fd, UI_DEV_DESTROY);
         close(uinput_fd);
@@ -111,12 +164,34 @@ class EvdevListenerTest < Test::Unit::TestCase
   def test_read_event
     @listener.listen_and_process_events [ @listener.keyboards.last ]
     sleep 0.2
-    send_key_event(@keyboard_fd, KEY_KP4)
+    send_key_event(@keyboard_fd, KEY_KP5)
     sleep 0.2
     assert_equal 1, @listener.queue.size
     event = @listener.queue.pop
     assert_equal Honcho::InputEvent, event.class
+    assert_equal :jog_wheel_button, event.button
+  end
+
+  def test_read_multiple_events_when_the_jog_wheel_is_turned
+    @listener.listen_and_process_events [ @listener.keyboards.last ]
+    sleep 0.2
+    send_held_down_key_events(@keyboard_fd, KEY_KP4)
+    sleep 02
+    assert_equal 3, @listener.queue.size
+    event = @listener.queue.pop
+    assert_equal Honcho::InputEvent, event.class
     assert_equal :jog_wheel_left, event.button
+  end
+
+  def test_read_multiple_events_when_the_jog_wheel_button_is_help
+    @listener.listen_and_process_events [ @listener.keyboards.last ]
+    sleep 0.2
+    send_held_down_key_events(@keyboard_fd, KEY_KP5)
+    sleep 02
+    assert_equal 1, @listener.queue.size
+    event = @listener.queue.pop
+    assert_equal Honcho::InputEvent, event.class
+    assert_equal :jog_wheel_button, event.button
   end
 
   def test_input_event_to_message

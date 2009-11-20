@@ -148,6 +148,7 @@ class EvdevListenerTest < Test::Unit::TestCase
   def setup
     @listener = Honcho::EvdevListener.new
     @keyboard_fd = add_keyboard
+    @uinput_keyboard = @listener.keyboards.sort_by { |x| x[/\d+/].to_i }.last
   end
 
   def teardown
@@ -162,10 +163,10 @@ class EvdevListenerTest < Test::Unit::TestCase
   end
 
   def test_read_event
-    @listener.listen_and_process_events [ @listener.keyboards.last ]
+    @listener.listen_and_process_events [ @uinput_keyboard ]
     sleep 0.2
     send_key_event(@keyboard_fd, KEY_KP5)
-    sleep 0.2
+    sleep 2
     assert_equal 1, @listener.queue.size
     event = @listener.queue.pop
     assert_equal Honcho::InputEvent, event.class
@@ -173,10 +174,10 @@ class EvdevListenerTest < Test::Unit::TestCase
   end
 
   def test_read_multiple_events_when_the_jog_wheel_is_turned
-    @listener.listen_and_process_events [ @listener.keyboards.last ]
+    @listener.listen_and_process_events [ @uinput_keyboard ]
     sleep 0.2
     send_held_down_key_events(@keyboard_fd, KEY_KP4)
-    sleep 02
+    sleep 0.2
     assert_equal 3, @listener.queue.size
     event = @listener.queue.pop
     assert_equal Honcho::InputEvent, event.class
@@ -184,10 +185,10 @@ class EvdevListenerTest < Test::Unit::TestCase
   end
 
   def test_read_multiple_events_when_the_jog_wheel_button_is_help
-    @listener.listen_and_process_events [ @listener.keyboards.last ]
+    @listener.listen_and_process_events [ @uinput_keyboard ]
     sleep 0.2
     send_held_down_key_events(@keyboard_fd, KEY_KP5)
-    sleep 02
+    sleep 0.2
     assert_equal 1, @listener.queue.size
     event = @listener.queue.pop
     assert_equal Honcho::InputEvent, event.class

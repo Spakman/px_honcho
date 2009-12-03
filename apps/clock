@@ -1,40 +1,29 @@
 #!/scratch/bin/ruby
+$0 = "clock"
+$LOAD_PATH.unshift "#{ENV["PROJECT_X_BASE"]}/lib/"
+
 require "socket"
+require "spandex/application"
+require "spandex/card"
 
-@socket = UNIXSocket.open "/tmp/clock.socket"
+class CurrentTime < Spandex::Card
+  top_left :back
 
-def respond_keep_focus
-  @socket << "<keepfocus 0>\n"
-  @socket.flush
-end
-
-def respond_close
-  @socket << "<closing 0>\n"
-  @socket.flush
-end
-
-def render_clock
-  markup = "<button position=\"top_left\">Back</button><text x=\"30\" y=\"25\">#{Time.now}</text>"
-  @socket << "<render #{markup.length}>\n#{markup}"
-end
-
-Thread.new do
-  loop do
-    render_clock
-    sleep 1
-  end
-end
-
-loop do
-  header = @socket.gets
-  if header =~ /^<(\w+) (\d{1,4})>\n$/
-    button = @socket.read $2.to_i
-    case button.chomp
-    when "top_left"
-      respond_close
-      exit
-    else
-      respond_keep_focus
+  def show
+    render_every 1, do
+      "<button position=top_left>Back</button>
+       <text y=10 x=20>
+       #{Time.now.strftime("%H:%M %S").center(20, " ")}
+       </text>
+       <text y=25 x=20>
+       #{Time.now.strftime("%d %B %Y").center(20, " ")}
+       </text>"
     end
   end
 end
+
+class Clock < Spandex::Application
+  entry_point :current_time
+end
+
+Clock.new.run

@@ -1,86 +1,31 @@
 #!/scratch/bin/ruby
+$0 = "main_menu"
+$LOAD_PATH.unshift "#{ENV["PROJECT_X_BASE"]}/lib/"
+
 require "socket"
+require "spandex/application"
+require "spandex/card"
+require "spandex/list"
 
-@socket = UNIXSocket.open "/tmp/main_menu.socket"
-
-@items = %w( Music Clock )
-@selected = 0
-
-def render_list
-  list = "<list>\n"
-  @items.each do |item|
-    list << "<item"
-    list << ' selected="yes"' if item == @items[@selected]
-    list << ">#{item}</item>\n"
+class Menu < Spandex::ListCard
+  jog_wheel_button method: -> do
+    pass_focus({ application: @apps[@list.selected] })
   end
-  list << "</list>\n"
-  @socket << "<render #{list.length}>\n#{list}"
-  @socket.flush
-end
 
-def respond_keep_focus
-  @socket << "<keepfocus 0>\n"
-  @socket.flush
-end
+  def after_initialize
+    @apps = {}
+    @apps["Music"] = "messier"
+    @apps["Clock"] = "clock"
+    @list = Spandex::List.new @apps.keys
+  end
 
-def respond_pass_focus_to_clock
-  @socket << "<passfocus 19>\n"
-  @socket << "application: clock\n" 
-  @socket.flush
-end
-
-def respond_pass_focus_to_messier
-  @socket << "<passfocus 21>\n"
-  @socket << "application: messier\n" 
-  @socket.flush
-end
-
-def move_selected_up
-  if @selected == 0
-    @selected = @items.length-1
-  else
-    @selected -= 1
+  def show
+    render @list.to_s
   end
 end
 
-def move_selected_down
-  if @selected == @items.length-1
-    @selected = 0 
-  else
-    @selected += 1
-  end
+class MainMenu < Spandex::Application
+  entry_point :menu
 end
 
-render_list
-
-loop do
-  header = @socket.gets
-  if header =~ /^<(\w+) (\d{1,4})>\n$/
-    if $1 == "inputevent"
-      button = @socket.read $2.to_i
-      case button.chomp
-      when "jog_wheel_left"
-        move_selected_up
-        render_list
-        respond_keep_focus
-      when "jog_wheel_right"
-        move_selected_down
-        render_list
-        respond_keep_focus
-      when "jog_wheel_button"
-        if @items[@selected] == "Clock"
-          respond_pass_focus_to_clock
-        elsif @items[@selected] == "Music"
-          respond_pass_focus_to_messier
-        else
-          respond_keep_focus
-        end
-      else
-        respond_keep_focus
-      end
-    elsif $1 == "havefocus"
-      render_list
-      respond_keep_focus
-    end
-  end
-end
+MainMenu.new.run

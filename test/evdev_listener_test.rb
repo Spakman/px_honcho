@@ -147,8 +147,9 @@ class EvdevListenerTest < Test::Unit::TestCase
 
   def setup
     @listener = Honcho::EvdevListener.new
+    existing_keyboards = @listener.keyboards
     @keyboard_fd = add_keyboard
-    @uinput_keyboard = @listener.keyboards.sort_by { |x| x[/\d+/].to_i }.last
+    @uinput_keyboard = (@listener.keyboards - existing_keyboards).first
   end
 
   def teardown
@@ -166,7 +167,7 @@ class EvdevListenerTest < Test::Unit::TestCase
     @listener.listen_and_process_events [ @uinput_keyboard ]
     sleep 0.2
     send_key_event(@keyboard_fd, KEY_KP5)
-    sleep 2
+    sleep 0.2
     assert_equal 1, @listener.queue.size
     event = @listener.queue.pop
     assert_equal Honcho::InputEvent, event.class

@@ -11,13 +11,11 @@ class CurrentTime < Spandex::Card
 
   def show
     render_every 1, do
-      "<button position=top_left>Back</button>
-       <text y=10 x=15>
-         #{Time.now.strftime("%H:%M %S").center(20, " ")}
-       </text>
-       <text y=25 x=15>
-        #{Time.now.strftime("%d %B %Y").center(20, " ")}
-       </text>"
+      %{
+        <button position="top_left">Back</button>
+        <text y="10" size="huge" halign="centre">#{Time.now.strftime("%H:%M")}</text>
+        <text y="40" halign="centre"> #{Time.now.strftime("%d %B %Y")}</text>
+      }
     end
   end
 end

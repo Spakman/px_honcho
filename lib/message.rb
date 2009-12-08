@@ -2,6 +2,8 @@
 # Released under the General Public License (GPL) version 3.
 # See COPYING
 
+require "yaml"
+
 module Honcho
   # Defines a message that Honcho sends or receives from the applications.
   class Message

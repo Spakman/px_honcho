@@ -6,6 +6,8 @@ module Honcho
   # A mutex and condition variable abstraction that is used by the main event
   # loop when waiting for a response.
   class ResponseWaiter
+    attr_reader :waiting
+
     def initialize
       @mutex = Mutex.new
       @condition_variable = ConditionVariable.new

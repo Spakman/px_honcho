@@ -36,7 +36,8 @@ module Honcho
     # Sends the passed message to the active application.
     def send_message(message)
       @applications.active[:socket] << message
-      act_on_response @response_waiter.wait
+      response = @response_waiter.wait
+      act_on_response(response)
     end
 
     # Handles the message response from the active application.
@@ -71,7 +72,6 @@ module Honcho
         pid = fork do
           exec executable_path_for(application)
         end
-
 
         socket = listening_socket.accept
 

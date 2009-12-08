@@ -6,21 +6,13 @@ require_relative "../lib/message_listener"
 
 Thread.abort_on_exception = true
 
-class FocusManager
-  attr_reader :close_called
-  def close(application)
-    @close_called = true
-  end
-end
-
-
-class HasFocusFocusManager < FocusManager
+class HasFocusFocusManager
   def has_focus?(application)
     true
   end
 end
 
-class DoesNotHaveFocusFocusManager < FocusManager
+class DoesNotHaveFocusFocusManager
   def has_focus?(application)
     false
   end
@@ -135,7 +127,6 @@ class MessageListenerTest < Test::Unit::TestCase
     sleep 0.3
     assert_equal 1, socket.gets_count
     assert listener.socket.closed?
-    assert focus_manager.close_called
   end
 
   def test_application_has_closed_socket_with_ebadf
@@ -146,7 +137,6 @@ class MessageListenerTest < Test::Unit::TestCase
     sleep 0.3
     assert_equal 1, socket.gets_count
     assert listener.socket.closed?
-    assert focus_manager.close_called
   end
 
   def test_application_has_closed_socket_with_ioerror
@@ -157,6 +147,5 @@ class MessageListenerTest < Test::Unit::TestCase
     sleep 0.3
     assert_equal 1, socket.gets_count
     assert listener.socket.closed?
-    assert focus_manager.close_called
   end
 end

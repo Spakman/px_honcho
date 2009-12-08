@@ -39,7 +39,7 @@ module Honcho
         loop do
           begin
             header = @socket.gets
-          rescue Errno::ECONNRESET, Errno::EBADF, IOError
+          rescue Errno::ECONNRESET, Errno::EBADF, IOError => e
             break
           end
           if header =~ /^<(\w+) (\d+)>\n$/
@@ -61,7 +61,13 @@ module Honcho
     # This listener is shutting down and should tidy up before it leaves.
     def cleanup
       @socket.close unless @socket.closed?
-      @focus_manager.close @application
+      5.times do
+        if @response_waiter.waiting
+          @response_waiter.signal Honcho::Message.new(:closing) 
+          break
+        end
+        sleep 0.2
+      end
     end
   end
 end

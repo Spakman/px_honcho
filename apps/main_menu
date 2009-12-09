@@ -8,8 +8,13 @@ require "spandex/card"
 require "spandex/list"
 
 class Menu < Spandex::ListCard
+
+  top_right method: -> do
+    pass_focus application: "mozart"
+  end
+
   jog_wheel_button method: -> do
-    pass_focus({ application: @apps[@list.selected] })
+    pass_focus application: @apps[@list.selected]
   end
 
   def after_initialize
@@ -20,7 +25,10 @@ class Menu < Spandex::ListCard
   end
 
   def show
-    render @list.to_s
+    render %{
+      <button position="top_right">Now playing</button>
+      #{@list.to_s}
+    }
   end
 end
 

@@ -2,7 +2,6 @@
 $0 = "main_menu"
 $LOAD_PATH.unshift "#{ENV["PROJECT_X_BASE"]}/lib/"
 
-require "socket"
 require "spandex/application"
 require "spandex/card"
 require "spandex/list"
@@ -20,7 +19,9 @@ class Menu < Spandex::ListCard
   def after_initialize
     @apps = {}
     @apps["Music"] = "messier"
+    @apps["Internet radio"] = "internet_radio"
     @apps["Clock"] = "clock"
+    @apps["Stats"] = "stats"
     @list = Spandex::List.new @apps.keys
   end
 

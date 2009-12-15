@@ -2,7 +2,6 @@
 $0 = "clock"
 $LOAD_PATH.unshift "#{ENV["PROJECT_X_BASE"]}/lib/"
 
-require "socket"
 require "spandex/application"
 require "spandex/card"
 

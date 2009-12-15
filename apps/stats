@@ -1,0 +1,35 @@
+#!/scratch/bin/ruby
+$0 = "stats"
+$LOAD_PATH.unshift "#{ENV["PROJECT_X_BASE"]}/lib/"
+
+require "spandex/application"
+require "spandex/card"
+
+class CurrentStats < Spandex::Card
+  top_left :back
+
+  def show
+    render_every 3, do
+      `uptime` =~ / \d{2}:\d{2}:\d{2} up +(.+), +\d+ users?.+ load average: (.+)$/
+      uptime = $1
+      load_average = $2
+      `df -h /` =~ /.+ +([0-9.]+[GM]) +([0-9.]+[GM]) +([0-9.]+[GM]) +(\d+%)/
+      total = $1
+      used = $2
+      free = $3
+      percent = $4
+      %{
+        <button position="top_left">Back</button>
+        <text x="40" y="15">Uptime    : #{uptime}</text>
+        <text x="40" y="25">Load avg  : #{load_average}</text>
+        <text x="40" y="35">Free space: #{free} (#{percent} used) (/)</text>
+      }
+    end
+  end
+end
+
+class Stats < Spandex::Application
+  entry_point :current_stats
+end
+
+Stats.new.run

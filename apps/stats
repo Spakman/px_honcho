@@ -13,16 +13,22 @@ class CurrentStats < Spandex::Card
       `uptime` =~ / \d{2}:\d{2}:\d{2} up +(.+), +\d+ users?.+ load average: (.+)$/
       uptime = $1
       load_average = $2
+
       `df -h /` =~ /.+ +([0-9.]+[GM]) +([0-9.]+[GM]) +([0-9.]+[GM]) +(\d+%)/
       total = $1
       used = $2
       free = $3
       percent = $4
+
+      free_lines = `free -m`.split("\n")
+      total_memory = free_lines[1].split(" ")[1]
+      free_memory = free_lines[2].split(" ")[3]
       %{
         <button position="top_left">Back</button>
-        <text x="40" y="15">Uptime    : #{uptime}</text>
-        <text x="40" y="25">Load avg  : #{load_average}</text>
-        <text x="40" y="35">Free space: #{free} (#{percent} used) (/)</text>
+        <text x="30" y="15">Uptime      : #{uptime}</text>
+        <text x="30" y="25">Load average: #{load_average}</text>
+        <text x="30" y="35">Free space  : #{free} (#{percent} used) (/)</text>
+        <text x="30" y="45">Free memory : #{free_memory}MB of #{total_memory}MB</text>
       }
     end
   end

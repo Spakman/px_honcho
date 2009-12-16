@@ -7,6 +7,7 @@ require "fileutils"
 require_relative "response_waiter"
 require_relative "message_listener"
 require_relative "application_stack"
+require_relative "backlight_controller"
 
 module Honcho
   # Handles event passing, application loading and focus.
@@ -22,6 +23,7 @@ module Honcho
       @applications = ApplicationStack.new
       @pid = nil
       at_exit { shutdown }
+      @backlight = BacklightController.new("/tmp/backlight", 5)
     end
 
     # Reads from the event queue and passes them onto the currently active
@@ -29,6 +31,7 @@ module Honcho
     def event_loop
       loop do
         event = @event_listener.queue.pop
+        @backlight.on!
         send_message event.to_message
       end
     end

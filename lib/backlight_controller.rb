@@ -19,9 +19,7 @@ module Honcho
     # of seconds specified when the class was initialized.
     def on!
       unless on?
-        File.open(@filepath, "w") do |file|
-          file << "1"
-        end
+        write_to_file "1"
       end
       @backlight_last_on = Time.now
       @on = true
@@ -30,10 +28,14 @@ module Honcho
     # Turns the backlight off.
     def off!
       if on?
-        File.open(@filepath, "w") do |file|
-          file << "0"
-        end
+        write_to_file "0"
         @on = false
+      end
+    end
+
+    def write_to_file(contents)
+      File.open(@filepath, "w") do |file|
+        file << contents
       end
     end
 

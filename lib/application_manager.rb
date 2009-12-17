@@ -21,7 +21,6 @@ module Honcho
       @response_waiter = Honcho::ResponseWaiter.new
 
       @applications = ApplicationStack.new
-      @pid = nil
       at_exit { shutdown }
       @backlight = BacklightController.new("/tmp/backlight", 5)
     end
@@ -67,7 +66,7 @@ module Honcho
     end
 
     # Sets up a socket, runs the application using fork/exec and then sets up a
-    # message listener.
+    # message listener for the application.
     def load_application(application)
       unless @applications.running? application
         listening_socket = listening_socket_for(application)

@@ -1,5 +1,4 @@
 #!/scratch/bin/ruby
-#
 # Copyright (C) 2009 Mark Somerville <mark@scottishclimbs.com>
 # Released under the General Public License (GPL) version 3.
 # See COPYING
@@ -8,9 +7,9 @@ $0 = "honcho"
 $LOAD_PATH.unshift "#{ENV["PROJECT_X_BASE"]}/lib/"
 
 require 'optparse'
-require "honcho/application_manager"
-require "honcho/render_arbiter"
-require "honcho/evdev_listener"
+require_relative "../lib/application_manager"
+require_relative "../lib/render_arbiter"
+require_relative "../lib/evdev_listener"
 
 Thread.abort_on_exception = true
 

@@ -3,7 +3,6 @@
 # See COPYING
 
 require "thread"
-require "yaml"
 require_relative "response_waiter"
 require_relative "message"
 
@@ -25,31 +24,25 @@ module Honcho
     # Render requests are added to the render queue if the application
     # currectly has focus. Responses to event messages cause the 
     # ResponseWaiter to be signalled.
-    #
-    # A request consists of a message header and the
-    # markup to render. The message header is of the form (terminated by a
-    # newline character):
-    #
-    # <render X>
-    # <keepfocus X>
-    #
-    # where X is the number of bytes in the body that follows.
     def listen_and_process_messages
       Thread.new do
         loop do
           begin
             header = @socket.gets
-          rescue Errno::ECONNRESET, Errno::EBADF, IOError => e
+          rescue Errno::ECONNRESET, Errno::EBADF, IOError => exception
             break
           end
-          if header =~ /^<(\w+) (\d+)>\n$/
-            body = @socket.read $2.to_i
-            message = Message.new $1, body
+          if header =~ /^<(?<type>\w+) (?<length>\d+)>\n$/
+            body = @socket.read $~[:length].to_i
+            message = Message.new $~[:type], body
             if message.type == :render
+              # Sometimes erroneous applications may send render requests when
+              # they are not active.
               if @focus_manager.has_focus? @application
                 @render_queue << message.body
               end
             else
+              # This is a response, let the waiter know.
               @response_waiter.signal message
             end
           end

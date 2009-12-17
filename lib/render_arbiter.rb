@@ -3,6 +3,7 @@
 # See COPYING
 
 require "thread"
+require_relative "message"
 
 module Honcho
   class RenderArbiter
@@ -19,8 +20,7 @@ module Honcho
       Thread.new do
         loop do
           request = @queue.pop
-          @pipe << "<render #{request.length}>\n"
-          @pipe << request
+          @pipe << Message.new(:render, request)
           @pipe.flush
         end
       end

@@ -1,3 +1,7 @@
+# Copyright (C) 2009 Mark Somerville <mark@scottishclimbs.com>
+# Released under the General Public License (GPL) version 3.
+# See COPYING
+
 module Honcho
   # A simple class that writes a 1 or a 0 to a file in order to indicate the desired state of an LCD backlight. The light remains on for some seconds after the call to #on!.
   class BacklightController

@@ -20,7 +20,7 @@ class CurrentTime < Spandex::Card
 end
 
 class Clock < Spandex::Application
-  entry_point :current_time
+  entry_point CurrentTime
 end
 
 Clock.new.run

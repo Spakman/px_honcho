@@ -34,7 +34,7 @@ class Menu < Spandex::ListCard
 end
 
 class MainMenu < Spandex::Application
-  entry_point :menu
+  entry_point Menu
 end
 
 MainMenu.new.run

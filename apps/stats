@@ -35,7 +35,7 @@ class CurrentStats < Spandex::Card
 end
 
 class Stats < Spandex::Application
-  entry_point :current_stats
+  entry_point CurrentStats
 end
 
 Stats.new.run

@@ -35,7 +35,7 @@ class Channels < Spandex::ListCard
 end
 
 class InternetRadio < Spandex::Application
-  entry_point :channels
+  entry_point Channels
 end
 
 InternetRadio.new.run

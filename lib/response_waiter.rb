@@ -2,6 +2,8 @@
 # Released under the General Public License (GPL) version 3.
 # See COPYING
 
+require "thread"
+
 module Honcho
   # A mutex and condition variable abstraction that is used by the main event
   # loop when waiting for a response.

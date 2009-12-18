@@ -47,7 +47,7 @@ module Honcho
       case response.type
       when :passfocus
         if response.body
-          application = response.body.delete "application"
+          application = response.body.delete :application
           load_application application
         else
           @applications.move_active_to_bottom

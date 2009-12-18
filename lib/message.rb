@@ -100,6 +100,8 @@ module Honcho
       @body = case @type
       when :passfocus
         if body.respond_to? :bytes
+          # symbolise the keys
+          body.gsub!(/^(\w+:)/, ':\1')
           YAML::load body rescue nil
         else
           body

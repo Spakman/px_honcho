@@ -89,7 +89,7 @@ class ApplicationManagerTest < Test::Unit::TestCase
     queue = Queue.new
     @manager = Honcho::ApplicationManager.new FakeRenderArbiter.new(Queue.new), FakeEventListener.new(queue)
     @manager.load_application "fake_messier"
-    @manager.act_on_response Honcho::Message.new(:passfocus, "application" => "fake_clock")
+    @manager.act_on_response Honcho::Message.new(:passfocus, application: "fake_clock")
     assert_equal 2, @manager.applications.size
     assert_equal "fake_clock", @manager.applications.active[:name]
     assert @manager.has_focus?("fake_clock")
@@ -99,7 +99,7 @@ class ApplicationManagerTest < Test::Unit::TestCase
     queue = Queue.new
     @manager = Honcho::ApplicationManager.new FakeRenderArbiter.new(Queue.new), FakeEventListener.new(queue)
     @manager.load_application "fake_messier"
-    @manager.act_on_response Honcho::Message.new(:passfocus, "application" => "fake_mozart", "method" => "play_ids", "params" => "1,2,3")
+    @manager.act_on_response Honcho::Message.new(:passfocus, application: "fake_mozart", "method" => "play_ids", "params" => "1,2,3")
     assert_equal 2, @manager.applications.size
     assert_equal "fake_mozart", @manager.applications.active[:name]
     assert @manager.has_focus?("fake_mozart")

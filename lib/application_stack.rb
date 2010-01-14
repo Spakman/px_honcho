@@ -22,7 +22,13 @@ module Honcho
       application = get name
       if application
         application[:socket].close unless application[:socket].closed?
-        Process.kill "TERM", application[:pid] rescue Errno::ESRCH
+        Thread.new do
+          begin
+            Process.kill "TERM", application[:pid] 
+            Process.waitpid application[:pid]
+          rescue Errno::ESRCH
+          end
+        end
         delete_at index_of(name)
       end
     end

@@ -11,5 +11,8 @@ loop do
       file << body
     end
   end
-  socket << "<keepfocus 0>\n"
+  begin
+    socket << "<keepfocus 0>\n"
+  rescue Errno::EPIPE
+  end
 end

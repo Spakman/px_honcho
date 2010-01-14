@@ -5,5 +5,8 @@ socket = UNIXSocket.open "/tmp/fake_clock.socket"
 
 loop do 
   socket.gets
-  socket << "<keepfocus 0>\n"
+  begin
+    socket << "<keepfocus 0>\n"
+  rescue Errno::EPIPE
+  end
 end

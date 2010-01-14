@@ -6,7 +6,11 @@ class ApplicationStackTest < Test::Unit::TestCase
   def setup
     @stack = Honcho::ApplicationStack.new
     @socket = StringIO.new
-    @stack << { :name => 'one', :socket => @socket } << { :name => 'two', :socket => @socket } << { :name => 'three', :socket => @socket }
+    @pid = fork do
+      sleep 5
+    end
+    # let's only only try to close 'three' because that's the only one with a real process!
+    @stack << { :name => 'one', :socket => @socket } << { :name => 'two', :socket => @socket } << { :name => 'three', :socket => @socket, :pid => @pid }
   end
 
   def test_switch_applications
@@ -25,6 +29,13 @@ class ApplicationStackTest < Test::Unit::TestCase
     assert_equal 'two', @stack.active[:name]
     assert !@stack.running?('three')
     assert @socket.closed?
+  end
+
+  def test_pid_is_reaped_on_close
+    assert_equal @pid.to_s, `ps -o pid= #{@pid}`.chomp
+    @stack.close 'three'
+    sleep 1
+    assert_empty `ps -o pid= #{@pid}`.chomp
   end
 
   def test_close_active

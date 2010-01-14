@@ -46,11 +46,20 @@ class ApplicationManagerTest < Test::Unit::TestCase
     assert !@manager.has_focus?("no_respond")
   end
 
-  def test_load_already_loaded_application
+  def test_load_already_loaded_application_in_foreground
     @manager = Honcho::ApplicationManager.new FakeRenderArbiter.new(Queue.new), nil
     @manager.load_application "no_respond"
     @manager.load_application "fake_messier"
     @manager.load_application "no_respond"
+    assert_equal 2, @manager.applications.size
+    assert_equal "no_respond", @manager.applications.active[:name]
+    assert @manager.has_focus?("no_respond")
+  end
+
+  def test_load_application_in_background
+    @manager = Honcho::ApplicationManager.new FakeRenderArbiter.new(Queue.new), nil
+    @manager.load_application "no_respond"
+    @manager.load_application "fake_messier", has_focus: false
     assert_equal 2, @manager.applications.size
     assert_equal "no_respond", @manager.applications.active[:name]
     assert @manager.has_focus?("no_respond")

@@ -43,6 +43,16 @@ evdev_listener.listen_and_process_events evdev_listener.keyboards
 
 application_manager = Honcho::ApplicationManager.new render_arbiter, evdev_listener
 
+# load the main_menu to ensure at least one application on the stack
 application_manager.load_application "main_menu"
+
+# now background load all the other applications
+apps = []
+Dir.chdir(Honcho::ApplicationManager::APPLICATION_BASE) do
+  apps = Dir.glob("*")
+end
+apps.each do |app|
+  application_manager.load_application app, has_focus: false
+end
 
 application_manager.event_loop

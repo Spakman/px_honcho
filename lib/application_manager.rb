@@ -67,8 +67,10 @@ module Honcho
 
     # Sets up a socket, runs the application using fork/exec and then sets up a
     # message listener for the application.
-    def load_application(application)
-      unless @applications.running? application
+    def load_application(application, options = { has_focus: true })
+      if @applications.running? application
+        @applications.active = application
+      else
         listening_socket = listening_socket_for(application)
 
         pid = fork do
@@ -80,9 +82,14 @@ module Honcho
         message_listener = Honcho::MessageListener.new socket, @render_arbiter, @response_waiter, self
         message_listener.listen_and_process_messages
 
-        @applications << { name: application, socket: socket, message_listener: message_listener, pid: pid }
+        application_hash = { name: application, socket: socket, message_listener: message_listener, pid: pid }
+
+        if options[:has_focus]
+          @applications << application_hash
+        else
+          @applications.unshift application_hash
+        end
       end
-      @applications.active = application
     end
     
     # Sets up a socket and starts listening for a connection from the application.

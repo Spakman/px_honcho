@@ -23,11 +23,10 @@ class BacklightControllerTest < Test::Unit::TestCase
     assert @backlight.off?
   end
 
-  def test_turns_of_after_a_while
-    @backlight.on!
+  def test_turns_off_after_a_while
     assert @backlight.on?
     assert_equal 1, value_in_file
-    sleep 3
+    sleep 4
     assert @backlight.off?
     assert_equal 0, value_in_file
   end
@@ -41,7 +40,7 @@ class BacklightControllerTest < Test::Unit::TestCase
     sleep 1.5
     assert @backlight.on?
     assert_equal 1, value_in_file
-    sleep 1
+    sleep 2
     assert @backlight.off?
     assert_equal 0, value_in_file
   end

@@ -7,8 +7,8 @@ module Honcho
   class BacklightController
     def initialize(filepath, stays_on_for = 5)
       @filepath = filepath
-      @on = false
       start_turn_off_thread(stays_on_for)
+      on!
     end
 
     def on?

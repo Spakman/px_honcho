@@ -18,9 +18,9 @@ class BacklightControllerTest < Test::Unit::TestCase
   end
 
   def test_on_and_off_checks
-    assert @backlight.off?
-    @backlight.on!
     assert @backlight.on?
+    @backlight.off!
+    assert @backlight.off?
   end
 
   def test_turns_of_after_a_while

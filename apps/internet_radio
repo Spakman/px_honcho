@@ -36,6 +36,7 @@ end
 
 class InternetRadio < Spandex::Application
   entry_point Channels
+  can_run_in_background
 end
 
 InternetRadio.new.run

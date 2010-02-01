@@ -98,7 +98,7 @@ module Honcho
     def initialize(type, body = nil)
       @type = type.to_sym
       @body = case @type
-      when :passfocus
+      when :passfocus, :havefocus
         if body.respond_to? :bytes
           # symbolise the keys
           body.gsub!(/^(\w+:)/, ':\1')

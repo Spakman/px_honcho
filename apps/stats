@@ -36,6 +36,7 @@ end
 
 class Stats < Spandex::Application
   entry_point CurrentStats
+  can_run_in_background
 end
 
 Stats.new.run

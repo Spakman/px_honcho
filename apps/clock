@@ -21,6 +21,7 @@ end
 
 class Clock < Spandex::Application
   entry_point CurrentTime
+  can_run_in_background
 end
 
 Clock.new.run

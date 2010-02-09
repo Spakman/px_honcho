@@ -50,9 +50,13 @@ module Honcho
         next if not File.readable? file
         Evdev::EventDevice.open(file) do |device|
           begin
-            device.feature_type_named('KEY')
-            device.feature_type_named('REP')
-            devices << device.path
+            if device.device_name == "rotary-encoder" or device.device_name == "gpio-keys"
+              devices << device.path
+            else
+              device.feature_type_named('KEY')
+              device.feature_type_named('REP')
+              devices << device.path
+            end
           rescue
           end
         end

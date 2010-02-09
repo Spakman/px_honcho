@@ -86,6 +86,7 @@ module Honcho
 
         if options[:has_focus]
           @applications << application_hash
+          send_message Message.new(:havefocus)
         else
           @applications.unshift application_hash
         end

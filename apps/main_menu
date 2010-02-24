@@ -9,7 +9,9 @@ require "spandex/list"
 class Menu < Spandex::ListCard
 
   top_right method: -> do
-    pass_focus application: "mozart"
+    if @mozart_playing
+      pass_focus application: "mozart"
+    end
   end
 
   jog_wheel_button method: -> do
@@ -23,13 +25,19 @@ class Menu < Spandex::ListCard
     @apps["Clock"] = "clock"
     @apps["Stats"] = "stats"
     @list = Spandex::List.new @apps.keys
+    @mozart_playing = false
+    Signal.trap("USR1") { @mozart_playing = true }
   end
 
   def show
-    render %{
-      <button position="top_right">Now playing</button>
-      #{@list.to_s}
-    }
+    if @mozart_playing
+      render %{
+        <button position="top_right">Now playing</button>
+        #{@list.to_s}
+      }
+    else
+      render @list.to_s
+    end
   end
 end
 

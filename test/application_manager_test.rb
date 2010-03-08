@@ -128,4 +128,14 @@ class ApplicationManagerTest < Test::Unit::TestCase
     assert @manager.has_focus?("fake_messier")
     assert_equal "fake_mozart", @manager.applications.first[:name]
   end
+
+  def test_files_are_closed_on_exec
+    @manager = Honcho::ApplicationManager.new FakeRenderArbiter.new(Queue.new), nil
+    @manager.load_application "no_respond"
+    @manager.load_application "fake_mozart"
+
+    # 4 rather than 3 since the child has opened a socket
+    assert_equal 4, `ls /proc/#{@manager.applications.first[:pid]}/fd/ | wc -l`.chomp.to_i
+    assert_equal 4, `ls /proc/#{@manager.applications.last[:pid]}/fd/ | wc -l`.chomp.to_i
+  end
 end

@@ -21,7 +21,7 @@ class EvdevListenerTest < Test::Unit::TestCase
       int add_keyboard() {
         int uinput_fd = -1;
         struct uinput_user_dev device;
-        uinput_fd = open("/dev/input/uinput", O_WRONLY | O_NDELAY);
+        uinput_fd = open("/dev/input/uinput", O_WRONLY | O_NDELAY | O_CLOEXEC);
         if (uinput_fd == -1) {
                 printf("Unable to open /dev/input/uinput\n");
                 return -1;
@@ -200,5 +200,12 @@ class EvdevListenerTest < Test::Unit::TestCase
     event = Honcho::InputEvent.new :top_left
     assert_kind_of Honcho::Message, event.to_message
     assert_equal "<inputevent 8>\ntop_left", event.to_message.to_s
+  end
+
+  def test_files_are_closed_on_exec
+    pid = fork { exec "sleep 2" }
+    sleep 0.5
+
+    assert_equal 3, `ls /proc/#{pid}/fd/ | wc -l`.chomp.to_i
   end
 end

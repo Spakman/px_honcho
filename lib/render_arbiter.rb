@@ -12,6 +12,7 @@ module Honcho
     def initialize(fifo_path, render_queue)
       @queue = render_queue
       @pipe = File.open fifo_path, "a+"
+      @pipe.close_on_exec = true
     end
 
     # Loops in a thread, sending render requests to Rembrandt as soon as

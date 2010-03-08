@@ -78,6 +78,7 @@ module Honcho
         end
 
         socket = listening_socket.accept
+        socket.close_on_exec = true
 
         message_listener = Honcho::MessageListener.new socket, @render_arbiter, @response_waiter, self
         message_listener.listen_and_process_messages
@@ -97,6 +98,7 @@ module Honcho
     def listening_socket_for(application)
       FileUtils.rm_f "#{SOCKET_BASE}/#{application}.socket"
       socket = UNIXServer.open "#{SOCKET_BASE}/#{application}.socket"
+      socket.close_on_exec = true
       socket.listen 1
       socket
     end 

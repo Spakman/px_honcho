@@ -56,9 +56,12 @@ class MessageListenerTest < Test::Unit::TestCase
     @socket_path = "/tmp/message_listener_test.socket"
     FileUtils.rm_f @socket_path
     listening_socket = UNIXServer.open @socket_path
+    listening_socket.close_on_exec = true
     listening_socket.listen 1
     @writing_socket = UNIXSocket.open @socket_path
+    @writing_socket.close_on_exec = true
     @reading_socket = listening_socket.accept
+    @reading_socket.close_on_exec = true
     @render_arbiter = FakeRenderArbiter.new Queue.new
     @response_waiter = Honcho::ResponseWaiter.new
   end

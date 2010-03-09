@@ -22,7 +22,7 @@ module Honcho
 
       @applications = ApplicationStack.new
       at_exit { shutdown }
-      @backlight = BacklightController.new("/tmp/backlight", 5)
+      @backlight = BacklightController.new("/tmp/backlight", 20)
     end
 
     # Reads from the event queue and passes them onto the currently active
@@ -30,8 +30,8 @@ module Honcho
     def event_loop
       loop do
         event = @event_listener.queue.pop
-        @backlight.on!
         send_message event.to_message
+        @backlight.on!
       end
     end
 

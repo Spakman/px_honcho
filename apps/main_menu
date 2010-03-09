@@ -6,7 +6,8 @@ require "spandex/application"
 require "spandex/card"
 require "spandex/list"
 
-class Menu < Spandex::ListCard
+class Menu < Spandex::Card
+  include JogWheelListMethods
 
   top_right method: -> do
     if @mozart_playing
